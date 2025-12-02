@@ -1,106 +1,55 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="utf-8">
-  <title>X•Ω Purple Box — Taylan 2025</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>XI·3 PHOENIX ONE</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body,html{height:100vh;width:100vw;overflow:hidden;background:#000;font-family:system-ui,sans-serif;color:#e0d4ff}
-    .bg{position:fixed;inset:0;background:radial-gradient(circle at center,#1a0033,#000);opacity:.9}
-    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;padding:20px;height:100%}
-    .tile{
-      position:relative;border:5px solid #8B00FF;border-radius:40px;overflow:hidden;cursor:pointer;
-      transition:all .6s;box-shadow:0 0 80px rgba(139,0,255,.6);backdrop-filter:blur(12px)
-    }
-    .tile:hover{transform:scale(1.06);box-shadow:0 0 160px #FF00FF}
-    .tile img{width:100%;height:100%;object-fit:cover}
-    .title{
-      position:absolute;bottom:30px;left:30px;font-size:38px;font-weight:900;
-      text-shadow:0 0 30px #000;letter-spacing:3px;background:rgba(0,0,0,.5);padding:8px 20px;border-radius:20px
-    }
-    .output{
-      position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.9);padding:20px;
-      border-top:3px solid #8B00FF;color:#fff;max-height:50vh;overflow-y:auto;display:none;z-index:999
-    }
-    .premium{filter:blur(16px);pointer-events:none}
-    .premium::after{
-      content:"PREMIUM ONLY — SLEUTEL NODIG";position:absolute;inset:0;background:rgba(0,0,0,.95);
-      display:flex;align-items:center;justify-content:center;font-size:48px;color:#FF0066;letter-spacing:6px
-    }
+    body,html{height:100%;width:100%;overflow:hidden;background:#000;font-family:'Inter',sans-serif;color:#fff}
+    canvas{position:fixed;inset:0;width:100%;height:100%;z-index:-1}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:40px;height:100%}
+    .tile{background:rgba(20,0,40,0.6);border:2px solid #8b00ff;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:2.8rem;font-weight:900;text-transform:uppercase;letter-spacing:4px;text-shadow:0 0 30px #8b00ff;transition:all .4s;box-shadow:0 0 40px rgba(139,0,255,0.4);cursor:pointer}
+    .tile:hover{transform:scale(1.05);box-shadow:0 0 80px #8b00ff;border-color:#00f2ff}
+    .pulse{animation:pulse 3s infinite}
+    @keyframes pulse{0%,100%{opacity:.7}50%{opacity:1}}
   </style>
 </head>
 <body>
-<div class="bg"></div>
+  <canvas id="plasma"></canvas>
+  <div class="grid">
+    <div class="tile pulse">MARKT</div>
+    <div class="tile pulse">STRUCTUUR</div>
+    <div class="tile pulse">WAARHEID</div>
+    <div class="tile pulse">WERELD</div>
+  </div>
 
-<div class="grid">
-  <div class="tile" onclick="runScan()"><img src="https://i.postimg.cc/8Y8K1gG/scan.jpg"><div class="title">LIVE SCAN</div></div>
-  <div class="tile" onclick="show('Pre-Liquidity')"><img src="https://i.postimg.cc/9f5Z3YqW/1.jpg"><div class="title">PRE-LIQUIDITY</div></div>
-  <div class="tile" onclick="show('Macro-Micro')"><img src="https://i.postimg.cc/JnL3vP4Y/2.jpg"><div class="title">MACRO-MICRO</div></div>
-  <div class="tile premium" onclick="unlock()"><img src="https://i.postimg.cc/3xVJ0q7Z/3.jpg"><div class="title">SYNTHESIS</div></div>
-  <div class="tile premium" onclick="unlock()"><img src="https://i.postimg.cc/9QJ7k7pG/4.jpg"><div class="title">TAYLAN FIELD</div></div>
-  <div class="tile" onclick="runScan()"><img src="https://i.postimg.cc/5y3kL3qY/5.jpg"><div class="title">UNCLAIMED</div></div>
-</div>
-
-<div class="output" id="out"></div>
-
-<script>
-// === PREMIUM UNLOCK (werkt op mobiel & desktop) ===
-const PREMIUM_KEY = "taylan_1_38_420_unlocked_forever";
-if (localStorage.getItem('pb_key') === PREMIUM_KEY) {
-  document.querySelectorAll('.premium').forEach(e => e.classList.remove('premium'));
-}
-
-function unlock() {
-  const key = prompt('Voer jouw sleutel in:');
-  if (key === PREMIUM_KEY) {
-    localStorage.setItem('pb_key', key);
-    location.reload();
-  } else alert('Verkeerde sleutel');
-}
-
-// === MEXC WEBSOCKET — 100% LIVE ===
-const ws = new WebSocket('wss://wbs-api.mexc.com/ws');
-ws.onopen = () => {
-  ws.send(JSON.stringify({method:"SUBSCRIPTION",params:[
-    "spot@public.ticker.v3.api@BTCUSDT",
-    "spot@public.depth.v3.api@BTCUSDT@20",
-    "spot@public.kline.v3.api@BTCUSDT@Min1"
-  ]}));
-};
-
-function runPurpleBoxScan(data) {
-  const price = Number(data.lastPrice).toFixed(2);
-  const change = Number(data.priceChangePercent).toFixed(2);
-  const taylanRatio = change < -3 && price < 90000 ? (1 + Math.abs(change)/100*12).toFixed(3) : "1.000";
-  const confluence = taylanRatio > 1.3 ? 0.98 : taylanRatio > 1.2 ? 0.92 : 0.78;
-  const direction = confluence > 0.9 ? "STERK BULLISH" : confluence > 0.8 ? "BULLISH" : "NEUTRAAL";
-
-  document.getElementById('out').style.display = 'block';
-  document.getElementById('out').innerHTML = `
-    <h2 style="color:#8B00FF">X•Ω PURPLE BOX — ${new Date().toLocaleTimeString()}</h2>
-    <p><b>Prijs:</b> $${price}</p>
-    <p><b>24h:</b> ${change > 0 ? '+' : ''}${change}%</p>
-    <p><b>Taylan-ratio:</b> ${taylanRatio} → ${taylanRatio > 1.3 ? 'HOOGSTE OOIT' : 'Sterk'}</p>
-    <p><b>Confluence:</b> ${(confluence*100).toFixed(1)}% ${direction}</p>
-    <h3 style="color:#FF0066">TRADE-PLAN</h3>
-    <p>Entry: $86.800 – $87.400</p>
-    <p>Stop: onder $85.200</p>
-    <p>TP1e TP: $94.000 | 2e TP: $104.000 | Runner: $108.200+</p>
-    <p><b>R:R = 1:9.2</b></p>
-    <h3 style="color:#00ff88">CONCLUSIE</h3>
-    <p>Dit is geen bounce. Dit is de start van de volgende impulsfase.</p>
-  `;
-}
-
-ws.onmessage = (e) => {
-  const msg = JSON.parse(e.data);
-  if (msg.channel?.includes('ticker') && msg.data?.symbol === 'BTCUSDT') {
-    runPurpleBoxScan(msg.data);
-  }
-};
-
-function show(txt) { alert(txt + ' — ' + (localStorage.getItem('pb_key')===PREMIUM_KEY ? 'VOLLEDIG ZICHTBAAR' : 'Premium vereist')); }
-</script>
+  <script>
+    const canvas = document.getElementById('plasma');
+    const ctx = canvas.getContext('2d');
+    canvas.width = innerWidth; canvas.height = innerHeight;
+    let time = 0;
+    function plasma() {
+      time += 0.01;
+      const imageData = ctx.createImageData(canvas.width, canvas.height);
+      for (let x = 0; x < canvas.width; x++) {
+        for (let y = 0; y < canvas.height; y++) {
+          const value = Math.sin(x * 0.01 + time) + Math.sin(y * 0.01 + time) + Math.sin((x + y) * 0.01 + time);
+          const color = Math.floor(128 + 127 * Math.sin(value));
+          const index = (y * canvas.width + x) * 4;
+          imageData.data[index] = color * 0.3;
+          imageData.data[index+1] = 0;
+          imageData.data[index+2] = color;
+          imageData.data[index+3] = 60;
+        }
+      }
+      ctx.putImageData(imageData, 0, 0);
+      requestAnimationFrame(plasma);
+    }
+    plasma();
+    window.addEventListener('resize', () => {
+      canvas.width = innerWidth; canvas.height = innerHeight;
+    });
+  </script>
 </body>
 </html>
