@@ -1,1 +1,40 @@
-# purple-box
+index.html
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>X•Ω Purple Box</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100vh;width:100vw;overflow:hidden;background:#000;color:#e0d4ff;font-family:system-ui,sans-serif}
+.bg{position:fixed;inset:0;background:url(https://i.imgur.com/8Y8K1gG.jpg) center/cover;filter:brightness(.6)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;padding:20px;height:100%}
+.tile{position:relative;border:4px solid #8B00FF;border-radius:32px;overflow:hidden;cursor:pointer;transition:.5s;box-shadow:0 0 60px #8B00FF}
+.tile:hover{transform:scale(1.05);box-shadow:0 0 120px #FF00FF}
+.tile img{width:100%;height:100%;object-fit:cover}
+.title{position:absolute;bottom:24px;left:24px;font-size:32px;font-weight:900;text-shadow:0 0 30px #000}
+.premium{filter:blur(12px)}
+.premium::after{content:"PREMIUM ONLY";position:absolute;inset:0;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;font-size:56px;color:#FF0066}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grid">
+<div class="tile" onclick="scan()"><img src="https://i.imgur.com/A.jpg"><div class="title">LIVE SCAN</div></div>
+<div class="tile"><img src="https://i.imgur.com/B.jpg"><div class="title">PRE-LIQUIDITY</div></div>
+<div class="tile"><img src="https://i.imgur.com/C.jpg"><div class="title">MACRO-MICRO</div></div>
+<div class="tile premium"><img src="https://i.imgur.com/D.jpg"><div class="title">SYNTHESIS</div></div>
+<div class="tile premium"><img src="https://i.imgur.com/E.jpg"><div class="title">TAYLAN FIELD</div></div>
+<div class="tile" onclick="alert('UNCLAIMED — 300+ patronen')"><img src="https://i.imgur.com/F.jpg"><div class="title">UNCLAIMED</div></div>
+</div>
+<script>
+async function scan(){
+  const r=await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
+  const d=await r.json();
+  alert(`LIVE SCAN — ${new Date().toLocaleTimeString()}\nBTC: $${(+d.price).toLocaleString()}\nDirection: BULLISH\nConfidence: 98.1%\nTarget: $108.200`);
+}
+</script>
+</body>
+</html>
