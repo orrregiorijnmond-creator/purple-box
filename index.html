@@ -1,36 +1,107 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="utf-8"><title>X•Ω Purple Box</title>
+<meta charset="utf-8">
+<title>X•Ω Purple Box — Taylan Edition</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}html,body{height:100vh;width:100vw;overflow:hidden;background:#000;color:#e0d4ff;font-family:system-ui,sans-serif}
-.bg{position:fixed;inset:0;background:url(https://i.imgur.com/8Y8K1gG.jpg) center/cover;filter:brightness(.6)}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;padding:20px;height:100%}
-.tile{position:relative;border:4px solid #8B00FF;border-radius:32px;overflow:hidden;cursor:pointer;transition:.5s;box-shadow:0 0 60px #8B00FF}
-.tile:hover{transform:scale(1.05);box-shadow:0 0 120px #FF00FF}
-.tile img{width:100%;height:100%;object-fit:cover}
-.title{position:absolute;bottom:24px;left:24px;font-size:32px;font-weight:900;text-shadow:0 0 30px #000}
-.premium{filter:blur(12px)}
-.premium::after{content:"PREMIUM ONLY";position:absolute;inset:0;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;font-size:56px;color:#FF0066}
+*{margin:0;padding:0;padding:0;box-sizing:border-box}
+html,body{height:100vh;width:100vw;overflow:hidden;background:#000;color:#e0d4ff;font-family:system-ui,sans-serif}
+.bg{position:fixed;inset:0;background:radial-gradient(circle at center, #1a0033, #000);filter:brightness(.7)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;padding:24px;height:100%}
+.tile{position:relative;border:5px solid #8B00FF;border-radius:40px;overflow:hidden;cursor:pointer;transition:.6s;box-shadow:0 0 0 80px rgba(139,0,255,.5);backdrop-filter:blur(10px)}
+.tile:hover{transform:scale(1.06);box-shadow:0 0 160px #FF00FF}
+.tile img{width:100%;height:100%;object-fit:cover;opacity:.9}
+.title{position:absolute;bottom:32px;left:32px;font-size:36px;font-weight:900;text-shadow:0 0 30px #000;letter-spacing:2px}
+.premium{filter:blur(16px);pointer-events:none}
+.premium::after{content:"PREMIUM ONLY";position:absolute;inset:0;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;font-size:64px;color:#FF0066;letter-spacing:8px}
+#output{position:fixed;bottom:20px;left:20px;right:20px;background:rgba(0,0,0,.8);padding:20px;border-radius:20px;border:2px solid #8B00FF;color:#fff;font-size:18px;max-height:40vh;overflow-y:auto;display:none;z-index:999}
 </style>
 </head>
 <body>
 <div class="bg"></div>
+
 <div class="grid">
-<div class="tile" onclick="scan()"><img src="https://i.imgur.com/A.jpg"><div class="title">LIVE SCAN</div></div>
-<div class="tile"><img src="https://i.imgur.com/B.jpg"><div class="title">PRE-LIQUIDITY</div></div>
-<div class="tile"><img src="https://i.imgur.com/C.jpg"><div class="title">MACRO-MICRO</div></div>
-<div class="tile premium"><img src="https://i.imgur.com/D.jpg"><div class="title">SYNTHESIS</div></div>
-<div class="tile premium"><img src="https://i.imgur.com/E.jpg"><div class="title">TAYLAN FIELD</div></div>
-<div class="tile" onclick="alert('UNCLAIMED — 300+ patronen')"><img src="https://i.imgur.com/F.jpg"><div class="title">UNCLAIMED</div></div>
+  <div class="tile" onclick="runScan()"><img src="https://i.imgur.com/8Y8K1gG.jpg"><div class="title">LIVE SCAN</div></div>
+  <div class="tile" onclick="showInfo('Pre-Liquidity')"><img src="https://i.postimg.cc/9f5Z3YqW/1.jpg"><div class="title">PRE-LIQUIDITY</div></div>
+  <div class="tile" onclick="showInfo('Macro-Micro')"><img src="https://i.postimg.cc/JnL3vP4Y/2.jpg"><div class="title">MACRO-MICRO</div></div>
+  <div class="tile premium" onclick="unlock()"><img src="https://i.postimg.cc/3xVJ0q7Z/3.jpg"><div class="title">SYNTHESIS</div></div>
+  <div class="tile premium" onclick="unlock()"><img src="https://i.postimg.cc/9QJ7k7pG/4.jpg"><div class="title">TAYLAN FIELD</div></div>
+  <div class="tile" onclick="runScan()"><img src="https://i.postimg.cc/5y3kL3qY/5.jpg"><div class="title">UNCLAIMED</div></div>
 </div>
+
+<div id="output"></div>
+
 <script>
-async function scan(){
-  const r=await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
-  const d=await r.json();
-  alert(`LIVE SCAN — ${new Date().toLocaleTimeString()}\nBTC: $${(+d.price).toLocaleString()}\nDirection: BULLISH\nConfidence: 98.1%\nTarget: $108.200`);
+// MEXC LIVE WEBSOCKET
+const ws = new WebSocket('wss://wbs-api.mexc.com/ws');
+ws.onopen = () => {
+  console.log('MEXC verbonden');
+  ws.send(JSON.stringify({method:"SUBSCRIPTION",params:[
+    "spot@public.ticker.v3.api@BTCUSDT",
+    "spot@public.depth.v3.api@BTCUSDT@20",
+    "spot@public.deals.v3.api@BTCUSDT"
+  ]}));
+};
+
+let isPremium = localStorage.getItem('purplebox_premium') === 'taylan_1_38_420_unlocked_forever';
+
+function unlock() {
+  if (isPremium) {
+    document.querySelectorAll('.premium').forEach(el => el.classList.remove('premium'));
+    alert('Taylan Field volledig ontgrendeld — voor altijd.');
+  } else {
+    const key = prompt('Voer jouw sleutel in:');
+    if (key === 'taylan_1_38_420_unlocked_forever') {
+      localStorage.setItem('purplebox_premium', key);
+      location.reload();
+    } else alert('Verkeerde sleutel');
+  }
 }
+
+// HOOFD SCAN FUNCTIE
+function runPurpleBoxScan(data) {
+  const price = Number(data.lastPrice || data.price).toFixed(2);
+  const change = Number(data.priceChangePercent || data.change24h).toFixed(2);
+
+  // Taylan-ratio live
+  const taylanRatio = change < -3 && price < 90000 ? 1 + Math.abs(change)/100*12 : 1;
+  const confluence = taylanRatio > 1.3 ? 0.98 : taylanRatio > 1.2 ? 0.92 : 0.78;
+
+  const direction = confluence > 0.9 ? "STERK BULLISH" : confluence > 0.8 ? "BULLISH" : "NEUTRAAL";
+
+  const output = document.getElementById('output');
+  output.style.display = 'block';
+  output.innerHTML = `
+    <h2>X•Ω PURPLE BOX SCAN — ${new Date().toLocaleTimeString()}</h2>
+    <p><strong>Prijs:</strong> $${price}</p>
+    <p><strong>24h:</strong> ${change > 0 ? '+' : ''}${change}%</p>
+    <p><strong>Taylan-ratio:</strong> ${taylanRatio.toFixed(3)} → ${taylanRatio > 1.3 ? 'HOOGSTE OOIT' : 'Sterk'}</p>
+    <p><strong>Confluence:</strong> ${(confluence*100).toFixed(1)}% ${direction}</p>
+    <h3>TRADE-PLAN</h3>
+    <p>Entry: $86.800 – $87.400</p>
+    <p>Stop: onder $85.200</p>
+    <p>TP1: $94.000 | TP2: $104.000 | Runner: $108.200+</p>
+    <p><strong>R:R = 1:9.2</strong></p>
+    <h3>CONCLUSIE</h3>
+    <p>Dit is geen bounce. Dit is de start van de volgende impulsfase.</p>
+  `;
+}
+
+// WEBSOCKET LISTENER
+ws.onmessage = (e) => {
+  const msg = JSON.parse(e.data);
+  if (msg.channel?.includes('ticker') && msg.data?.symbol === 'BTCUSDT') {
+    runPurpleBoxScan(msg.data);
+  }
+};
+
+function showInfo(layer) {
+  alert(`${layer} laag — ${isPremium ? 'Volledig zichtbaar' : 'Premium vereist'}`);
+}
+
+// Bij laden: premium check
+if (isPremium) document.querySelectorAll('.premium').forEach(el => el.classList.remove('premium'));
 </script>
 </body>
 </html>
